@@ -15,13 +15,22 @@
 package com.lithium.luces;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
 
-enum IndexAnalysis {
-	NO, ANALYZED, NOT_ANALYZED, NOT_ANALYZED_NO_NORMS, ANALYZED_NO_NORMS
-}
-enum Stored {
-	YES, NO
-}
+import com.google.gson.Gson;
+
+//enum IndexAnalysis {
+//	NO, ANALYZED, NOT_ANALYZED, NOT_ANALYZED_NO_NORMS, ANALYZED_NO_NORMS
+//}
+//enum Stored {
+//	YES {
+//		public boolean isStored() { return true; }
+//	},
+//	NO {
+//		public boolean isStored() { return false; }
+//	}
+//}
 
 /**
  * @author Brian Harrington
@@ -30,11 +39,12 @@ public class Convert {
 
 	public static String documentToJSON(Document doc) {
 		// convert to a more friendly, controllable object
-		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder("name", "Value", IndexAnalysis.ANALYZED, Stored.YES).build();
+		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder("", "Value", Index.ANALYZED, Store.YES).build();
 
+		Gson gson = new Gson();
+		return gson.toJson(doc361);
 
 		// then serialize
-		return "";
 	}
 
 
