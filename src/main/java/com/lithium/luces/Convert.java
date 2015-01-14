@@ -15,25 +15,14 @@
 package com.lithium.luces;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-//enum IndexAnalysis {
-//	NO, ANALYZED, NOT_ANALYZED, NOT_ANALYZED_NO_NORMS, ANALYZED_NO_NORMS
-//}
-//enum Stored {
-//	YES {
-//		public boolean isStored() { return true; }
-//	},
-//	NO {
-//		public boolean isStored() { return false; }
-//	}
-//}
+
 
 /**
+ * Utility class for converting Lucene Documents to a JSON format for consumption by Elasticsearch
  * @author Brian Harrington
  */
 public class Convert {
@@ -42,13 +31,10 @@ public class Convert {
 		return documentToJSON(doc, false);
 	}
 	public static String documentToJSON(Document doc, boolean prettyPrint) {
-		// convert to a more friendly, controllable object
 		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder(doc).build();
 
 		Gson gson = prettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
 		return gson.toJson(doc361);
-
-		// then serialize
 	}
 
 
