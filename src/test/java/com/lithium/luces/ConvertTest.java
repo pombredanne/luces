@@ -17,20 +17,20 @@ package com.lithium.luces;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 /**
  * @author Brian Harrington
  */
 public class ConvertTest extends TestCase{
 
-	public void testConvert() {
+	public void testConvertOneField() {
 		Document doc = new Document();
 		doc.add(new Field("Trogdor", "Homestar", Field.Store.NO,
 				Field.Index.NOT_ANALYZED));
-		Convert.documentToJSON(doc);
+		String json = Convert.documentToJSON(doc, true);
+		System.out.println(json);
+		assertNotNull(json);
 	}
 
 }

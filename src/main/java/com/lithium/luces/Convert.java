@@ -19,6 +19,7 @@ import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 //enum IndexAnalysis {
 //	NO, ANALYZED, NOT_ANALYZED, NOT_ANALYZED_NO_NORMS, ANALYZED_NO_NORMS
@@ -38,10 +39,13 @@ import com.google.gson.Gson;
 public class Convert {
 
 	public static String documentToJSON(Document doc) {
+		return documentToJSON(doc, false);
+	}
+	public static String documentToJSON(Document doc, boolean prettyPrint) {
 		// convert to a more friendly, controllable object
-		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder("", "Value", Index.ANALYZED, Store.YES).build();
+		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder(doc).build();
 
-		Gson gson = new Gson();
+		Gson gson = prettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
 		return gson.toJson(doc361);
 
 		// then serialize

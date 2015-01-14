@@ -16,6 +16,7 @@ package com.lithium.luces;
 
 import java.util.List;
 
+import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.Fieldable;
@@ -25,29 +26,20 @@ import org.apache.lucene.document.Fieldable;
  */
 
 public class LucDoc3_6_1 {
-	private String name;
-	private String value;
-	private Index index;
-	private Store stored;
-	private List<Fieldable> fields;
+	private final float boost;
+	private final List<Fieldable> fields;
 
 	private LucDoc3_6_1(LucDocBuilder builder) {
-		this.name = builder.name;
-		this.value = builder.value;
-		this.index = builder.index;
-		this.stored = builder.store;
+		this.boost = builder.boost;
+		this.fields = builder.fields;
 	}
 	public static class LucDocBuilder {
-		private String name;
-		private String value;
-		private Index index;
-		private Store store;
+		private float boost;
+		private List<Fieldable> fields;
 
-		public LucDocBuilder (String name, String value, Index index, Store store) {
-			this.name = name;
-			this.value = value;
-			this.index = index;
-			this.store = store;
+		public LucDocBuilder (Document doc) {
+			this.boost = doc.getBoost();
+			this.fields = doc.getFields();
 		}
 
 
