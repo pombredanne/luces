@@ -48,4 +48,7 @@ public class LucDoc3_6_1 {
 			return new LucDoc3_6_1(this);
 		}
 	}
+//	public static class MockUserDocumentBuilder {
+//
+//	}
 }

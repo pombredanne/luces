@@ -14,7 +14,13 @@
 
 package com.lithium.luces;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Fieldable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,10 +37,15 @@ public class Convert {
 		return documentToJSON(doc, false);
 	}
 	public static String documentToJSON(Document doc, boolean prettyPrint) {
-		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder(doc).build();
+//		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder(doc).build();
+		HashMap<String, Object> fields = new LinkedHashMap<>();
+		List<Fieldable> docFields = doc.getFields();
+		for (Fieldable field : docFields) {
+			fields.put(field.name(), field.stringValue());
+		}
 
 		Gson gson = prettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
-		return gson.toJson(doc361);
+		return gson.toJson(fields);
 	}
 
 
