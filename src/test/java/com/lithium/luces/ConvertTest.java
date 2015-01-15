@@ -85,10 +85,9 @@ public class ConvertTest extends TestCase{
 
 		// readUserMetrics
 		doc.add(new Field("posts", posts, Store.NO, Index.NOT_ANALYZED));
-		// TODO: kudos given, received, image upload count
-		doc.add(new Field("kudos_given", String.valueOf(kudos_given), Store.NO, Index.NOT_ANALYZED));
-		doc.add(new Field("kudos_received", String.valueOf(kudos_received), Store.NO, Index.NOT_ANALYZED));
-		doc.add(new Field("public_image_upload_count", public_image_upload_count, Store.NO, Index.NOT_ANALYZED));
+		doc.add(new Field("kudos_given", String.valueOf(kudos_given), Store.YES, Index.NOT_ANALYZED));
+		doc.add(new Field("kudos_received", String.valueOf(kudos_received), Store.YES, Index.NOT_ANALYZED));
+		doc.add(new Field("public_image_upload_count", public_image_upload_count, Store.YES, Index.NOT_ANALYZED));
 
 		return doc;
 	}
