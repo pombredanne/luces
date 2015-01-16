@@ -15,6 +15,7 @@
     </license>
   </licenses>
   <scm>
+    <connection>scm:git:git@github.com:lithiumtech/luces.git</connection>
     <developerConnection>scm:git:git@github.com:lithiumtech/luces.git</developerConnection>
     <url>https://github.com/lithiumtech/luces</url>
     <tag>luces-0.2</tag>
