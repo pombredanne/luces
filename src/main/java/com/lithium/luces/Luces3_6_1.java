@@ -19,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 
 import com.google.gson.Gson;
@@ -31,13 +30,17 @@ import com.google.gson.GsonBuilder;
  * Utility class for converting Lucene Documents to a JSON format for consumption by Elasticsearch
  * @author Brian Harrington
  */
-public class Convert {
+public class Luces3_6_1 implements Luces {
 
-	public static String documentToJSON(Document doc) {
+	public Luces3_6_1() {
+		// check version?
+		Document doc = new Document(); // discard after check
+	}
+
+	public String documentToJSON(Document doc) {
 		return documentToJSON(doc, false);
 	}
-	public static String documentToJSON(Document doc, boolean prettyPrint) {
-//		LucDoc3_6_1 doc361 = new LucDoc3_6_1.LucDocBuilder(doc).build();
+	public String documentToJSON(Document doc, boolean prettyPrint) {
 		HashMap<String, Object> fields = new LinkedHashMap<>();
 		List<Fieldable> docFields = doc.getFields();
 		for (Fieldable field : docFields) {

@@ -28,7 +28,7 @@ import junit.framework.TestCase;
 /**
  * @author Brian Harrington
  */
-public class ConvertTest extends TestCase{
+public class Luces3_6_1Test extends TestCase{
 
 	public void testConvertOneField() {
 		String valid = "{\n" +
@@ -40,7 +40,8 @@ public class ConvertTest extends TestCase{
 				"  \"gender\": \"male\"\n" +
 				"}";
 		Document doc = createMockFlatUserDocument();
-		String json = Convert.documentToJSON(doc, true);
+		Luces luces = new Luces3_6_1();
+		String json = luces.documentToJSON(doc, true);
 		System.out.println(json);
 		assertEquals(valid, json);
 	}
