@@ -23,7 +23,7 @@ import org.apache.lucene.document.Fieldable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
+import com.google.gson.JsonElement;
 
 
 /**
@@ -32,23 +32,24 @@ import com.google.gson.GsonBuilder;
  */
 public class Luces3_6_1 implements Luces {
 
+	@SuppressWarnings("unused")
 	public Luces3_6_1() {
 		// check version?
 		Document doc = new Document(); // discard after check
 	}
 
-	public String documentToJSON(Document doc) {
-		return documentToJSON(doc, false);
+	public String documentToJSONStringified(Document doc, boolean setPrettyPrint) {
+		Gson gson = setPrettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
+		return gson.toJson(documentToJSON(doc));
 	}
-	public String documentToJSON(Document doc, boolean prettyPrint) {
+
+	public JsonElement documentToJSON(Document doc) {
 		HashMap<String, Object> fields = new LinkedHashMap<>();
 		List<Fieldable> docFields = doc.getFields();
 		for (Fieldable field : docFields) {
 			fields.put(field.name(), field.stringValue());
 		}
-
-		Gson gson = prettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
-		return gson.toJson(fields);
+		return new Gson().toJsonTree(fields);
 	}
 
 

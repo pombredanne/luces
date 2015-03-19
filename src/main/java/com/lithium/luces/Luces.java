@@ -16,11 +16,13 @@ package com.lithium.luces;
 
 import org.apache.lucene.document.Document;
 
+import com.google.gson.JsonElement;
+
 /**
  * @author Brian Harrington
  */
 public interface Luces {
 
-	String documentToJSON(Document doc);
-	String documentToJSON(Document doc, boolean prettyPrint);
+	String documentToJSONStringified(Document doc, boolean setPrettyPrint);
+	JsonElement documentToJSON(Document doc);
 }

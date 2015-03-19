@@ -41,8 +41,8 @@ public class Luces3_6_1Test extends TestCase{
 				"}";
 		Document doc = createMockFlatUserDocument();
 		Luces luces = new Luces3_6_1();
-		String json = luces.documentToJSON(doc, true);
-		System.out.println(json);
+		String json = luces.documentToJSONStringified(doc, true);
+//		System.out.println(json);
 		assertEquals(valid, json);
 	}
 
