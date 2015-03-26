@@ -22,14 +22,17 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.util.Version;
+import org.junit.Assert;
+import org.junit.Test;
 
-import junit.framework.TestCase;
 
 /**
  * @author Brian Harrington
  */
-public class Luces3_6_1Test extends TestCase{
+public class LucesTest {
 
+	@Test
 	public void testConvertOneField() {
 		String valid = "{\n" +
 				"  \"login\": \"trogdor\",\n" +
@@ -40,10 +43,15 @@ public class Luces3_6_1Test extends TestCase{
 				"  \"gender\": \"male\"\n" +
 				"}";
 		Document doc = createMockFlatUserDocument();
-		Luces luces = new Luces3_6_1();
+		Luces luces = new Luces(Version.LUCENE_36);
 		String json = luces.documentToJSONStringified(doc, true);
 //		System.out.println(json);
-		assertEquals(valid, json);
+		Assert.assertEquals(valid, json);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testUnsupportedVersion() {
+		Luces luces = new Luces(Version.LUCENE_30);
 	}
 
 	private Document createMockFlatUserDocument() {

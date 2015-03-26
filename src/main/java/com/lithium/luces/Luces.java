@@ -1,6 +1,6 @@
 /*
- * Luces.java
- * Created on Jan 28, 2015
+ * Convert.java
+ * Created on Jan 13, 2015
  *
  * Copyright 2015 Lithium Technologies, Inc.
  * San Francisco, California, U.S.A.  All Rights Reserved.
@@ -14,15 +14,46 @@
 
 package com.lithium.luces;
 
-import org.apache.lucene.document.Document;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Fieldable;
+import org.apache.lucene.util.Version;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 
+
 /**
+ * Utility class for converting Lucene Documents to a JSON format for consumption by Elasticsearch
  * @author Brian Harrington
  */
-public interface Luces {
+public class Luces {
 
-	String documentToJSONStringified(Document doc, boolean setPrettyPrint);
-	JsonElement documentToJSON(Document doc);
+	@SuppressWarnings("unused")
+	public Luces(Version version) {
+		if (!version.equals(Version.LUCENE_36)) {
+			throw new UnsupportedOperationException("This library does not support Lucene version " + version.name());
+		}
+		Document doc = new Document(); // discard after check
+	}
+
+	public String documentToJSONStringified(Document doc, boolean setPrettyPrint) {
+		Gson gson = setPrettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
+		return gson.toJson(documentToJSON(doc));
+	}
+
+	public JsonElement documentToJSON(Document doc) {
+		HashMap<String, Object> fields = new LinkedHashMap<>();
+		List<Fieldable> docFields = doc.getFields();
+		for (Fieldable field : docFields) {
+			fields.put(field.name(), field.stringValue());
+		}
+		return new Gson().toJsonTree(fields);
+	}
+
+
 }
