@@ -3,7 +3,7 @@
   <groupId>com.lithium.luces</groupId>
   <artifactId>luces</artifactId>
   <packaging>jar</packaging>
-  <version>0.8</version>
+  <version>0.9-SNAPSHOT</version>
   <name>luces</name>
   <description>A small library for converting Lucene documents to Elasticsearch</description>
   <url>https://github.com/lithiumtech/luces</url>
