@@ -54,6 +54,11 @@ public class LucesTest {
 		Luces luces = new Luces(Version.LUCENE_30);
 	}
 
+	@Test
+	public void testSupportedVersion() {
+		Luces luces = new Luces(Version.LUCENE_36);
+	}
+
 	private Document createMockFlatUserDocument() {
 		final String login = "Trogdor";
 		final String email = "homestar@runner.com";
