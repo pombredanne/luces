@@ -36,6 +36,7 @@ public class Luces {
 
 	private String typeName;
 	private JsonObject mapping;
+	private boolean useDefaults;
 
 	@SuppressWarnings("unused")
 	public Luces(Version version) {
@@ -59,6 +60,21 @@ public class Luces {
 			this.typeName = typeName;
 			this.mapping = mapping;
 		}
+		return this;
+	}
+
+	/**
+	 * Flag for setting default values for empty strings. Only used when there is a mapping file to
+	 * determine field types. Otherwise empty strings will throw a parsing error
+	 * Defaults are:
+	 * <li>0 for int / long</li>
+	 * <li>0.0 for float / double</li>
+	 * <li>false for boolean</li>
+	 * @param useDefaults whether to use defaults when an empty string is encountered
+	 * @return this
+	 */
+	public Luces useDefaultsForEmpty(boolean useDefaults) {
+		this.useDefaults = useDefaults;
 		return this;
 	}
 
@@ -90,29 +106,36 @@ public class Luces {
 					continue;
 				}
 				JsonElement fieldType = fieldDef.get("type");
-				String fieldValue = field.stringValue();
+				String fieldValue = field.stringValue().trim();
 				Object parsedValue;
-				switch (fieldType.getAsString()) {
-					case "byte":
-						// FALL THROUGH
-					case "short":
-						// FALL THROUGH
-					case "integer":
-						// FALL THROUGH
-					case "long":
-						parsedValue = Long.parseLong(fieldValue.trim());
-						break;
-					case "float":
-						// FALL THROUGH
-					case "double":
-						parsedValue = Double.parseDouble(fieldValue.trim());
-						break;
-					case "boolean":
-						parsedValue = Boolean.parseBoolean(fieldValue.trim());
-						break;
-					default: // leave as string
-						parsedValue = fieldValue;
-						break;
+				try {
+					switch (fieldType.getAsString()) {
+						case "byte":
+							// FALL THROUGH
+						case "short":
+							// FALL THROUGH
+						case "integer":
+							// FALL THROUGH
+						case "long":
+							fieldValue = "".equals(fieldValue) && useDefaults ? "0" : fieldValue;
+							parsedValue = Long.parseLong(fieldValue);
+							break;
+						case "float":
+							// FALL THROUGH
+						case "double":
+							fieldValue = "".equals(fieldValue) && useDefaults ? "0.0" : fieldValue;
+							parsedValue = Double.parseDouble(fieldValue);
+							break;
+						case "boolean":
+							fieldValue = "".equals(fieldValue) && useDefaults ? "false" : fieldValue;
+							parsedValue = Boolean.parseBoolean(fieldValue);
+							break;
+						default: // leave as string
+							parsedValue = fieldValue;
+							break;
+					}
+				} catch (NumberFormatException ex) {
+					throw new NumberFormatException("Error parsing " + field.name() + " field: " + ex.getMessage());
 				}
 				fields.put(field.name(), parsedValue);
 			}

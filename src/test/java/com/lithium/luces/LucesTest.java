@@ -86,6 +86,68 @@ public class LucesTest {
 		Assert.assertEquals(valid, json);
 	}
 
+	@Test (expected = NumberFormatException.class)
+	public void testErrorOnEmptyFloatValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(RATING);
+		doc.add(new Field(RATING, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping());
+		luces.documentToJSONStringified(doc, true);
+	}
+
+	@Test (expected = NumberFormatException.class)
+	public void testErrorOnEmptyIntValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(VIEWS);
+		doc.add(new Field(VIEWS, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping());
+		luces.documentToJSONStringified(doc, true);
+	}
+
+	/**
+	 * for similar tests, this would throw a format error, but since empty strings get parsed to false, no error is
+	 * thrown
+	 */
+	@Test
+	public void testEmptyBoolValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(REGISTERED);
+		doc.add(new Field(REGISTERED, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping());
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		Assert.assertEquals("false", converted.get(REGISTERED).getAsString());
+	}
+
+	@Test
+	public void testDefaultOnEmptyFloatValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(RATING);
+		doc.add(new Field(RATING, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping()).useDefaultsForEmpty(true);
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		Assert.assertEquals("0.0", converted.get(RATING).getAsString());
+	}
+
+	@Test
+	public void testDefaultOnEmptyIntValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(VIEWS);
+		doc.add(new Field(VIEWS, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping()).useDefaultsForEmpty(true);
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		Assert.assertEquals("0", converted.get(VIEWS).getAsString());
+	}
+
+	@Test
+	public void testDefaultOnEmptyBoolValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(REGISTERED);
+		doc.add(new Field(REGISTERED, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping()).useDefaultsForEmpty(true);
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		Assert.assertEquals("false", converted.get(REGISTERED).getAsString());
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testUnsupportedVersion() {
 		Luces luces = new Luces(Version.LUCENE_30);
