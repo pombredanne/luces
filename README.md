@@ -14,17 +14,48 @@ Dependencies:
 
 Usage:
 ------------
-For now, the library can be used like so:
+The library can be used like so:
 
 ```java
-Convert.documentToJSON(Document doc);
+Luces lucesConverter = new Luces(Version.LUCENE_36)
+JsonElement jsonDoc = lucesConverter.documentToJSON(Document doc);
 ```
-Where doc is a populated Lucene document. A string will beb returned that represents the JSON blob that can be sent to  Elasticsearch.
+Where doc is a populated Lucene document. A JsonObject will be returned that can be sent to Elasticsearch.
 For testing purposes, you can also pass a boolean to pretty print the output:
 
 ```java
-Convert.documentToJSON(Document doc, true);
+String jsonBlob = luceneConverter.documentToJSONStringified(Document doc, true);
 ```
+
+You can also specify an elasticsearch mapping JSON blob, which will enable any string values that are supposed to be integers, floats, etc. into their correct types
+For example, a mapping like:
+```javascript
+{
+  "user": {
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "id": {
+        "type": "integer"
+      }
+    }
+  }
+}
+```
+can be added to the converter this way, as a JsonObject:
+
+```java
+luceneConverter.mapping("user", mappingJsonObject)
+```
+where "user" is the type in Elasticsearch.
+
+When using a mapping file, empty values will not be parsed correctly, so you can specify if you want empty values replaced with the defaults for the type:
+```java
+luceneConverter.useDefaultsForEmpty(true);
+```
+
+Otherwise, it defaults to false, and will throw a NumberFormatException when a value is empty. Keep in mind that invalid values (like 123abc in an integer field) will still throw parsing errors regardless of the flag
 
 TODO:
 ------------
