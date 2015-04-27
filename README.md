@@ -1,7 +1,7 @@
 Luces
 ============
 
-A library to convert Lucene documents to JSON
+A library to convert Lucene documents to JSON for Elasticsearch consumption
 
 License: Apache 2.0
 
@@ -17,7 +17,7 @@ Usage:
 The library can be used like so:
 
 ```java
-Luces lucesConverter = new Luces(Version.LUCENE_36)
+Luces lucesConverter = new Luces(org.apache.lucene.util.Version.LUCENE_36)
 JsonElement jsonDoc = lucesConverter.documentToJSON(Document doc);
 ```
 Where doc is a populated Lucene document. A JsonObject will be returned that can be sent to Elasticsearch.
@@ -59,6 +59,7 @@ Otherwise, it defaults to false, and will throw a NumberFormatException when a v
 
 TODO:
 ------------
+* Handle mappings with hierarchical levels to type determination
 * Add to central Maven repo: http://maven.apache.org/guides/mini/guide-central-repository-upload.html
 * Add more testing
 * make code better
