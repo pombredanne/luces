@@ -17,6 +17,7 @@ package com.lithium.luces;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.NoSuchElementException;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -84,6 +85,19 @@ public class LucesTest {
 		String json = luces.documentToJSONStringified(doc, true);
 //		System.out.println(json);
 		Assert.assertEquals(valid, json);
+	}
+
+	@Test (expected = NoSuchElementException.class)
+	public void testTypeMappingMismatch() {
+		Luces luces = new Luces(Version.LUCENE_36).mapping("typo", createMapping());
+	}
+
+	@Test (expected = NoSuchElementException.class)
+	public void testMappingFieldMissingType() {
+		JsonObject mapping = createMapping();
+		mapping.getAsJsonObject(TYPE).getAsJsonObject("properties").getAsJsonObject(LOGIN).remove("type");
+
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, mapping);
 	}
 
 	@Test (expected = NumberFormatException.class)
