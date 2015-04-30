@@ -100,6 +100,27 @@ public class LucesTest {
 		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, mapping);
 	}
 
+	@Test (expected = UnsupportedOperationException.class)
+	public void testTypeIsNotAString() {
+		JsonObject mapping = createMapping();
+		mapping.getAsJsonObject(TYPE).getAsJsonObject("properties").getAsJsonObject(LOGIN).remove("type");
+		JsonObject typeAsObject = new JsonObject();
+		typeAsObject.addProperty("blah", "something");
+		typeAsObject.addProperty("meh", "something else");
+		mapping.getAsJsonObject(TYPE).getAsJsonObject("properties").getAsJsonObject(LOGIN).add("type", typeAsObject);
+
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, mapping);
+	}
+
+	@Test (expected = UnsupportedOperationException.class)
+	public void testTypeIsNotSupported() {
+		JsonObject mapping = createMapping();
+		mapping.getAsJsonObject(TYPE).getAsJsonObject("properties").getAsJsonObject(LOGIN).remove("type");
+		mapping.getAsJsonObject(TYPE).getAsJsonObject("properties").getAsJsonObject(LOGIN).addProperty("type", "weird_type");
+
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, mapping);
+	}
+
 	@Test (expected = NumberFormatException.class)
 	public void testErrorOnEmptyFloatValue() {
 		Document doc = createMockFlatUserDocument();
