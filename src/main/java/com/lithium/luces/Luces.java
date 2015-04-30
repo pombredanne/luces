@@ -15,8 +15,6 @@
 package com.lithium.luces;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,12 +157,12 @@ public class Luces {
 	private void putOrAppend(Map<String, Object> fieldMap, String fieldName, Object fieldValue) {
 		Object value = fieldMap.get(fieldName);
 		if (value != null) {
-			if (value instanceof Collections) {
+			if (value instanceof ArrayList) {
 				List<Object> values = (List<Object>) value;
 				values.add(fieldValue);
 				fieldMap.put(fieldName, values);
 			} else {
-				Collection<Object> objects = new ArrayList<>(3);
+				List<Object> objects = new ArrayList<>(3);
 				objects.add(value);
 				objects.add(fieldValue);
 				fieldMap.put(fieldName, objects);
