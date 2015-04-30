@@ -27,6 +27,7 @@ import org.apache.lucene.util.Version;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 
@@ -38,11 +39,12 @@ public class LucesTest {
 	private String TYPE = "testType";
 	private String LOGIN = "login";
 	private String FIRST_NAME = "name_first";
-	private String EMAIL = "email";
+	private String EMAIL_FIELD = "email";
 	private String RATING = "rating";
 	private String VIEWS = "views";
 	private String NEG_BYTE = "negByteField";
 	private String REGISTERED = "registered";
+	private String EMAIL_1 = "homestar@runner.com";
 
 	@Test
 	public void testConvertOneDocumentWithMapping() {
@@ -183,6 +185,32 @@ public class LucesTest {
 		Assert.assertEquals("false", converted.get(REGISTERED).getAsString());
 	}
 
+	@Test
+	public void testWeirdBoolValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(REGISTERED);
+		doc.add(new Field(REGISTERED, "boolean", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping()).useDefaultsForEmpty(true);
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		Assert.assertEquals("false", converted.get(REGISTERED).getAsString());
+	}
+
+	@Test
+	public void testDocWithDuplicateFieldsConvertsToArray() {
+		Document doc = createMockFlatUserDocument();
+		String EMAIL2 = "this@that.com";
+		String EMAIL3 = "me@you.com";
+		doc.add(new Field(EMAIL_FIELD, EMAIL2, Store.NO, Index.ANALYZED)); // second email field
+		doc.add(new Field(EMAIL_FIELD, EMAIL3, Store.NO, Index.ANALYZED));    // third
+		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping()).useDefaultsForEmpty(true);
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		JsonArray array = converted.get(EMAIL_FIELD).getAsJsonArray();
+		Assert.assertEquals(3, array.size());
+		Assert.assertEquals(EMAIL_1, array.get(0).getAsString());
+		Assert.assertEquals(EMAIL2, array.get(1).getAsString());
+		Assert.assertEquals(EMAIL3, array.get(2).getAsString());
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testUnsupportedVersion() {
 		Luces luces = new Luces(Version.LUCENE_30);
@@ -195,7 +223,7 @@ public class LucesTest {
 
 	private Document createMockFlatUserDocument() {
 		final String login = "Trogdor";
-		final String email = "homestar@runner.com";
+		final String email = EMAIL_1;
 		final Calendar reg_date = new GregorianCalendar(2014, Calendar.DECEMBER, 23, 13, 24, 56);
 		final String name_first = "Joe";
 		final String name_last = "Schmo";
@@ -207,7 +235,7 @@ public class LucesTest {
 		doc.add(new Field(LOGIN, login.toLowerCase(), Store.YES, Index.NOT_ANALYZED));
 		doc.add(new Field(FIRST_NAME, name_first, Store.NO, Index.ANALYZED));
 		doc.add(new Field("name_last", name_last, Store.NO, Index.ANALYZED));
-		doc.add(new Field("email", email.toLowerCase(), Store.NO, Index.ANALYZED));
+		doc.add(new Field(EMAIL_FIELD, email.toLowerCase(), Store.NO, Index.ANALYZED));
 		doc.add(new Field("signup", sdf.format(reg_date.getTime()), Store.NO, Index.NOT_ANALYZED));
 		doc.add(new Field("gender", gender, Store.NO, Index.ANALYZED));
 		// testing numbers and accounting for whitespace

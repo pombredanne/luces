@@ -58,7 +58,8 @@ public class Luces {
 	 * Specify a mapping JSON object to be able to convert document fields to their proper types
 	 *
 	 * @param typeName Name of the type. Set to null to reset the mapping file and only output strings for the field
-	 *                 values. Throws an error if the typeName doesn't match the root in the mapping
+	 *                 values. Throws an error if the typeName doesn't match the root in the mapping, or if the mapping
+	 *                 is invalid.
 	 * @param mapping  mapping JSON object.
 	 * @return this
 	 */
@@ -87,7 +88,7 @@ public class Luces {
 				} catch (IllegalArgumentException illegal) {
 					throw new UnsupportedOperationException("The " + typeElt.getAsString() + " type is not supported for conversion");
 				}
-				if (null != parseType) {
+				if (null != parseType && !ParseType.STRING.equals(parseType)) { // don't need to store info on strings
 					typeMap.put(fieldDef.getKey(), parseType);
 				}
 			}
@@ -135,7 +136,7 @@ public class Luces {
 		if (null != typeMap && null != typeName) {
 			for (Fieldable field : docFields) {
 				ParseType parseType = typeMap.containsKey(field.name()) ? typeMap.get(field.name()) : ParseType.STRING;
-				String fieldValue = field.stringValue().trim();
+				String fieldValue = field.stringValue();
 				Object parsedValue;
 				try {
 					switch (parseType) {
@@ -146,21 +147,24 @@ public class Luces {
 						case INTEGER:
 							// FALL THROUGH
 						case LONG:
+							fieldValue = fieldValue.trim();
 							fieldValue = "".equals(fieldValue) && useDefaults ? "0" : fieldValue;
 							parsedValue = Long.parseLong(fieldValue);
 							break;
 						case FLOAT:
 							// FALL THROUGH
 						case DOUBLE:
+							fieldValue = fieldValue.trim();
 							fieldValue = "".equals(fieldValue) && useDefaults ? "0.0" : fieldValue;
 							parsedValue = Double.parseDouble(fieldValue);
 							break;
 						case BOOLEAN:
-							fieldValue = "".equals(fieldValue) && useDefaults ? "false" : fieldValue;
+							fieldValue = fieldValue.trim();
+							// anything that doesn't match the string "true" ignoring case evaluates to false
 							parsedValue = Boolean.parseBoolean(fieldValue);
 							break;
 						default: // leave as untrimmed string
-							parsedValue = field.stringValue();
+							parsedValue = fieldValue;
 							break;
 					}
 				} catch (NumberFormatException ex) {
