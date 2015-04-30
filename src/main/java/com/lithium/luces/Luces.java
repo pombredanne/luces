@@ -162,7 +162,7 @@ public class Luces {
 				values.add(fieldValue);
 				fieldMap.put(fieldName, values);
 			} else {
-				List<Object> objects = new ArrayList<>(3);
+				List<Object> objects = new ArrayList<>();
 				objects.add(value);
 				objects.add(fieldValue);
 				fieldMap.put(fieldName, objects);
