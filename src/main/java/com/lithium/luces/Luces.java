@@ -14,9 +14,12 @@
 
 package com.lithium.luces;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
@@ -30,6 +33,7 @@ import com.google.gson.JsonObject;
 
 /**
  * Utility class for converting Lucene Documents to a JSON format for consumption by Elasticsearch
+ *
  * @author Brian Harrington
  */
 public class Luces {
@@ -47,9 +51,10 @@ public class Luces {
 
 	/**
 	 * Specify a mapping JSON object to be able to convert document fields to their proper types
+	 *
 	 * @param typeName Name of the type. Set to null to reset the mapping file and only output strings for the field
 	 *                 values
-	 * @param mapping mapping JSON object.
+	 * @param mapping  mapping JSON object.
 	 * @return this
 	 */
 	public Luces mapping(String typeName, JsonObject mapping) {
@@ -70,6 +75,7 @@ public class Luces {
 	 * <li>0 for int / long</li>
 	 * <li>0.0 for float / double</li>
 	 * <li>false for boolean</li>
+	 *
 	 * @param useDefaults whether to use defaults when an empty string is encountered
 	 * @return this
 	 */
@@ -80,7 +86,8 @@ public class Luces {
 
 	/**
 	 * Gets a string representation of the JSON object that the document has been converted to
-	 * @param doc the Lucene document to convert
+	 *
+	 * @param doc            the Lucene document to convert
 	 * @param setPrettyPrint pretty print the JSON string
 	 * @return the String version of the JSON version of a document
 	 */
@@ -91,18 +98,19 @@ public class Luces {
 
 	/**
 	 * Convert the document to a JSON representation of a Lucene document for indexing into Elasticsearch
+	 *
 	 * @param doc the Lucene document
 	 * @return the JSON representation of the document
 	 */
 	public JsonElement documentToJSON(Document doc) {
-		HashMap<String, Object> fields = new LinkedHashMap<>();
+		Map<String, Object> fields = new LinkedHashMap<>();
 		List<Fieldable> docFields = doc.getFields();
 		if (null != mapping && null != typeName) {
 			JsonObject propertiesJson = mapping.getAsJsonObject(typeName).getAsJsonObject("properties");
 			for (Fieldable field : docFields) {
 				JsonObject fieldDef = propertiesJson.getAsJsonObject(field.name());
 				if (null == fieldDef) {
-					fields.put(field.name(), field.stringValue());
+					putOrAppend(fields, field.name(), field.stringValue());
 					continue;
 				}
 				JsonElement fieldType = fieldDef.get("type");
@@ -137,14 +145,33 @@ public class Luces {
 				} catch (NumberFormatException ex) {
 					throw new NumberFormatException("Error parsing " + field.name() + " field: " + ex.getMessage());
 				}
-				fields.put(field.name(), parsedValue);
+				putOrAppend(fields, field.name(), parsedValue);
 			}
 		} else {
 			for (Fieldable field : docFields) {
-				fields.put(field.name(), field.stringValue());
+				putOrAppend(fields, field.name(), field.stringValue());
 			}
 		}
 		return new Gson().toJsonTree(fields);
+	}
+
+
+	private void putOrAppend(Map<String, Object> fieldMap, String fieldName, Object fieldValue) {
+		Object value = fieldMap.get(fieldName);
+		if (value != null) {
+			if (value instanceof Collections) {
+				List<Object> values = (List<Object>) value;
+				values.add(fieldValue);
+				fieldMap.put(fieldName, values);
+			} else {
+				Collection<Object> objects = new ArrayList<>(3);
+				objects.add(value);
+				objects.add(fieldValue);
+				fieldMap.put(fieldName, objects);
+			}
+		} else {
+			fieldMap.put(fieldName, fieldValue);
+		}
 	}
 
 
