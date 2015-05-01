@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.NoSuchElementException;
 
+import com.google.gson.JsonElement;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
@@ -300,6 +301,48 @@ public class LucesTest {
 
 		return doc;
 	}
+
+	@Test
+	public void testMultipleValueField() {
+		Document doc = createMockFlatUserDocumentWithMultipleValueForGenderField();
+		Luces luces = new Luces(Version.LUCENE_36);
+		luces.mapping(TYPE, createMapping());
+		JsonElement json = luces.documentToJSON(doc);
+		Assert.assertEquals(2, json.getAsJsonObject().getAsJsonArray("gender").size());
+	}
+
+	private Document createMockFlatUserDocumentWithMultipleValueForGenderField() {
+		final String login = "Trogdor";
+		final String email = EMAIL_1;
+		final Calendar reg_date = new GregorianCalendar(2014, Calendar.DECEMBER, 23, 13, 24, 56);
+		final String name_first = "Joe";
+		final String name_last = "Schmo";
+		final String gender1 = "male";
+		final String gender2 = "female";
+
+		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+
+		Document doc = new Document();
+
+		doc.add(new Field(LOGIN, login.toLowerCase(), Store.YES, Index.NOT_ANALYZED));
+		doc.add(new Field(FIRST_NAME, name_first, Store.NO, Index.ANALYZED));
+		doc.add(new Field("name_last", name_last, Store.NO, Index.ANALYZED));
+		doc.add(new Field(EMAIL_FIELD, email.toLowerCase(), Store.NO, Index.ANALYZED));
+		doc.add(new Field("signup", sdf.format(reg_date.getTime()), Store.NO, Index.NOT_ANALYZED));
+		doc.add(new Field("gender", gender1, Store.NO, Index.ANALYZED));
+		doc.add(new Field("gender", gender2, Store.NO, Index.ANALYZED));
+
+		// testing numbers and accounting for whitespace
+		doc.add(new Field(RATING, "  4.2453 ", Store.NO, Index.ANALYZED));
+		doc.add(new Field(VIEWS, "  655351", Store.NO, Index.ANALYZED));
+		doc.add(new Field(NEG_BYTE, " -12 ", Store.NO, Index.ANALYZED));
+		doc.add(new Field(REGISTERED, " true ", Store.NO, Index.ANALYZED));
+
+		return doc;
+	}
+
+
+
 
 	private JsonObject createMapping() {
 		JsonObject mapping = new JsonObject();
