@@ -29,6 +29,7 @@ import org.apache.lucene.util.Version;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 
@@ -46,6 +47,7 @@ public class Luces {
 	private String typeName;
 	private Map<String, ParseType> typeMap;
 	private boolean useDefaults;
+	private boolean useNull;
 
 	@SuppressWarnings("unused")
 	public Luces(Version version) {
@@ -70,15 +72,16 @@ public class Luces {
 		} else {
 			this.typeName = typeName;
 			this.typeMap = new HashMap<>();
-			JsonObject mapRoot = mapping.getAsJsonObject(typeName);
-			if (null == mapRoot) {
+			JsonObject workingJson = mapping.getAsJsonObject(typeName);
+			if (null == workingJson) {
 				throw new NoSuchElementException(typeName + " type not present or misnamed in mapping");
 			}
-			mapRoot = mapRoot.getAsJsonObject("properties"); // TODO account for nesting
-			for (Entry<String, JsonElement> fieldDef : mapRoot.entrySet()) {
-				JsonElement typeElt = fieldDef.getValue().getAsJsonObject().get("type");
+			// TODO account for nesting
+			workingJson = workingJson.getAsJsonObject("properties");
+			for (Entry<String, JsonElement> entry : workingJson.entrySet()) {
+				JsonElement typeElt = entry.getValue().getAsJsonObject().get("type");
 				if (null == typeElt) {
-					throw new NoSuchElementException("Invalid mapping: No type defined for " + fieldDef.getKey() + " field.");
+					throw new NoSuchElementException("Invalid mapping: No type defined for " + entry.getKey() + " field.");
 				}
 				ParseType parseType;
 				try {
@@ -89,7 +92,7 @@ public class Luces {
 					throw new UnsupportedOperationException("The " + typeElt.getAsString() + " type is not supported for conversion");
 				}
 				if (null != parseType && !ParseType.STRING.equals(parseType)) { // don't need to store info on strings
-					typeMap.put(fieldDef.getKey(), parseType);
+					typeMap.put(entry.getKey(), parseType);
 				}
 			}
 		}
@@ -104,11 +107,30 @@ public class Luces {
 	 * <li>0.0 for float / double</li>
 	 * <li>false for boolean</li>
 	 *
-	 * @param useDefaults whether to use defaults when an empty string is encountered
+	 * @param useDefaults whether to use defaults when an empty string is encountered for a non-string type.
+	 *                    If set to true, useNull will be set to false
+	 *
 	 * @return this
 	 */
 	public Luces useDefaultsForEmpty(boolean useDefaults) {
 		this.useDefaults = useDefaults;
+		if (useDefaults) {
+			useNull = false;
+		}
+		return this;
+	}
+
+	/**
+	 * Use a null value when an empty string is encountered. If set to true, useDefaults will be set to false
+	 *
+	 * @param useNull whether to use a null value when an empty string is encountered for a non-string type
+	 * @return this
+	 */
+	public Luces useNullForEmpty(boolean useNull) {
+		this.useNull = useNull;
+		if (useNull) {
+			useDefaults = false;
+		}
 		return this;
 	}
 
@@ -137,6 +159,10 @@ public class Luces {
 			for (Fieldable field : docFields) {
 				ParseType parseType = typeMap.containsKey(field.name()) ? typeMap.get(field.name()) : ParseType.STRING;
 				String fieldValue = field.stringValue();
+				if (null == fieldValue || (useNull && "".equals(fieldValue.trim()))) {
+					putOrAppend(fields, field.name(), JsonNull.INSTANCE);
+					continue;
+				}
 				Object parsedValue;
 				try {
 					switch (parseType) {
@@ -148,14 +174,14 @@ public class Luces {
 							// FALL THROUGH
 						case LONG:
 							fieldValue = fieldValue.trim();
-							fieldValue = "".equals(fieldValue) && useDefaults ? "0" : fieldValue;
+							fieldValue = (useDefaults && "".equals(fieldValue)) ? "0" : fieldValue;
 							parsedValue = Long.parseLong(fieldValue);
 							break;
 						case FLOAT:
 							// FALL THROUGH
 						case DOUBLE:
 							fieldValue = fieldValue.trim();
-							fieldValue = "".equals(fieldValue) && useDefaults ? "0.0" : fieldValue;
+							fieldValue = (useDefaults && "".equals(fieldValue)) ? "0.0" : fieldValue;
 							parsedValue = Double.parseDouble(fieldValue);
 							break;
 						case BOOLEAN:

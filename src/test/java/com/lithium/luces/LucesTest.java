@@ -89,6 +89,35 @@ public class LucesTest {
 		Assert.assertEquals(valid, json);
 	}
 
+	@Test
+	public void testMappingIsNullified() {
+		String valid = "{\n" +
+				"  \"login\": \"trogdor\",\n" +
+				"  \"name_first\": \"Joe\",\n" +
+				"  \"name_last\": \"Schmo\",\n" +
+				"  \"email\": \"homestar@runner.com\",\n" +
+				"  \"signup\": \"12/23/2014\",\n" +
+				"  \"gender\": \"male\",\n" +
+				"  \"rating\": \"  4.2453 \",\n" +
+				"  \"views\": \"  655351\",\n" +
+				"  \"negByteField\": \" -12 \",\n" +
+				"  \"registered\": \" true \"\n" +
+				"}";
+		Document doc = createMockFlatUserDocument();
+		Luces luces = new Luces(Version.LUCENE_36);
+		luces.mapping(TYPE, createMapping());
+		luces.mapping(TYPE, null);
+		String json = luces.documentToJSONStringified(doc, true);
+//		System.out.println(json);
+		Assert.assertEquals(valid, json);
+
+		luces.mapping(TYPE, createMapping());
+		luces.mapping(null, createMapping());
+		json = luces.documentToJSONStringified(doc, true);
+//		System.out.println(json);
+		Assert.assertEquals(valid, json);
+	}
+
 	@Test (expected = NoSuchElementException.class)
 	public void testTypeMappingMismatch() {
 		Luces luces = new Luces(Version.LUCENE_36).mapping("typo", createMapping());
@@ -193,6 +222,31 @@ public class LucesTest {
 		Luces luces = new Luces(Version.LUCENE_36).mapping(TYPE, createMapping()).useDefaultsForEmpty(true);
 		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
 		Assert.assertEquals("false", converted.get(REGISTERED).getAsString());
+	}
+
+	@Test
+	public void testUseNullOnEmptyIntValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(VIEWS);
+		doc.add(new Field(VIEWS, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36)
+				.useNullForEmpty(true)
+				.mapping(TYPE, createMapping());
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		Assert.assertNull(converted.get(VIEWS));
+	}
+
+	@Test
+	public void testCantUseNullAndDefaultOnEmptyIntValue() {
+		Document doc = createMockFlatUserDocument();
+		doc.removeField(VIEWS);
+		doc.add(new Field(VIEWS, "   ", Store.NO, Index.ANALYZED));
+		Luces luces = new Luces(Version.LUCENE_36)
+				.useNullForEmpty(true)
+				.mapping(TYPE, createMapping()).useDefaultsForEmpty(true);
+		JsonObject converted = luces.documentToJSON(doc).getAsJsonObject();
+		Assert.assertNotNull(converted.get(VIEWS));
+		Assert.assertEquals("0", converted.get(VIEWS).getAsString());
 	}
 
 	@Test
