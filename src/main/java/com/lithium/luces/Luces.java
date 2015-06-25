@@ -15,9 +15,12 @@
 package com.lithium.luces;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
@@ -26,6 +29,7 @@ import org.apache.lucene.util.Version;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 
@@ -36,9 +40,14 @@ import com.google.gson.JsonObject;
  */
 public class Luces {
 
+	private enum ParseType {
+		BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE, BOOLEAN, STRING
+	}
+
 	private String typeName;
-	private JsonObject mapping;
+	private Map<String, ParseType> typeMap;
 	private boolean useDefaults;
+	private boolean useNull;
 
 	@SuppressWarnings("unused")
 	public Luces(Version version) {
@@ -51,17 +60,41 @@ public class Luces {
 	 * Specify a mapping JSON object to be able to convert document fields to their proper types
 	 *
 	 * @param typeName Name of the type. Set to null to reset the mapping file and only output strings for the field
-	 *                 values
+	 *                 values. Throws an error if the typeName doesn't match the root in the mapping, or if the mapping
+	 *                 is invalid.
 	 * @param mapping  mapping JSON object.
 	 * @return this
 	 */
 	public Luces mapping(String typeName, JsonObject mapping) {
 		if (null == typeName || null == mapping) {
 			this.typeName = null;
-			this.mapping = null;
+			this.typeMap = null;
 		} else {
 			this.typeName = typeName;
-			this.mapping = mapping;
+			this.typeMap = new HashMap<>();
+			JsonObject workingJson = mapping.getAsJsonObject(typeName);
+			if (null == workingJson) {
+				throw new NoSuchElementException(typeName + " type not present or misnamed in mapping");
+			}
+			// TODO account for nesting
+			workingJson = workingJson.getAsJsonObject("properties");
+			for (Entry<String, JsonElement> entry : workingJson.entrySet()) {
+				JsonElement typeElt = entry.getValue().getAsJsonObject().get("type");
+				if (null == typeElt) {
+					throw new NoSuchElementException("Invalid mapping: No type defined for " + entry.getKey() + " field.");
+				}
+				ParseType parseType;
+				try {
+					parseType = ParseType.valueOf(typeElt.getAsString().toUpperCase());
+				} catch (UnsupportedOperationException ex) {
+					throw new UnsupportedOperationException("Invalid Mapping: Type defined is not a string: " + typeElt.toString());
+				} catch (IllegalArgumentException illegal) {
+					throw new UnsupportedOperationException("The " + typeElt.getAsString() + " type is not supported for conversion");
+				}
+				if (null != parseType && !ParseType.STRING.equals(parseType)) { // don't need to store info on strings
+					typeMap.put(entry.getKey(), parseType);
+				}
+			}
 		}
 		return this;
 	}
@@ -74,11 +107,30 @@ public class Luces {
 	 * <li>0.0 for float / double</li>
 	 * <li>false for boolean</li>
 	 *
-	 * @param useDefaults whether to use defaults when an empty string is encountered
+	 * @param useDefaults whether to use defaults when an empty string is encountered for a non-string type.
+	 *                    If set to true, useNull will be set to false
+	 *
 	 * @return this
 	 */
 	public Luces useDefaultsForEmpty(boolean useDefaults) {
 		this.useDefaults = useDefaults;
+		if (useDefaults) {
+			useNull = false;
+		}
+		return this;
+	}
+
+	/**
+	 * Use a null value when an empty string is encountered. If set to true, useDefaults will be set to false
+	 *
+	 * @param useNull whether to use a null value when an empty string is encountered for a non-string type
+	 * @return this
+	 */
+	public Luces useNullForEmpty(boolean useNull) {
+		this.useNull = useNull;
+		if (useNull) {
+			useDefaults = false;
+		}
 		return this;
 	}
 
@@ -103,40 +155,44 @@ public class Luces {
 	public JsonElement documentToJSON(Document doc) {
 		Map<String, Object> fields = new LinkedHashMap<>();
 		List<Fieldable> docFields = doc.getFields();
-		if (null != mapping && null != typeName) {
-			JsonObject propertiesJson = mapping.getAsJsonObject(typeName).getAsJsonObject("properties");
+		if (null != typeMap && null != typeName) {
 			for (Fieldable field : docFields) {
-				JsonObject fieldDef = propertiesJson.getAsJsonObject(field.name());
-				if (null == fieldDef) {
-					putOrAppend(fields, field.name(), field.stringValue());
+				ParseType parseType = typeMap.get(field.name());
+				if (null == parseType) {
+					parseType = ParseType.STRING;
+				}
+				String fieldValue = field.stringValue();
+				if (null == fieldValue || (useNull && "".equals(fieldValue.trim()))) {
+					putOrAppend(fields, field.name(), JsonNull.INSTANCE);
 					continue;
 				}
-				JsonElement fieldType = fieldDef.get("type");
-				String fieldValue = field.stringValue().trim();
 				Object parsedValue;
 				try {
-					switch (fieldType.getAsString()) {
-						case "byte":
+					switch (parseType) {
+						case BYTE:
 							// FALL THROUGH
-						case "short":
+						case SHORT:
 							// FALL THROUGH
-						case "integer":
+						case INTEGER:
 							// FALL THROUGH
-						case "long":
-							fieldValue = "".equals(fieldValue) && useDefaults ? "0" : fieldValue;
+						case LONG:
+							fieldValue = fieldValue.trim();
+							fieldValue = (useDefaults && "".equals(fieldValue)) ? "0" : fieldValue;
 							parsedValue = Long.parseLong(fieldValue);
 							break;
-						case "float":
+						case FLOAT:
 							// FALL THROUGH
-						case "double":
-							fieldValue = "".equals(fieldValue) && useDefaults ? "0.0" : fieldValue;
+						case DOUBLE:
+							fieldValue = fieldValue.trim();
+							fieldValue = (useDefaults && "".equals(fieldValue)) ? "0.0" : fieldValue;
 							parsedValue = Double.parseDouble(fieldValue);
 							break;
-						case "boolean":
-							fieldValue = "".equals(fieldValue) && useDefaults ? "false" : fieldValue;
+						case BOOLEAN:
+							fieldValue = fieldValue.trim();
+							// anything that doesn't match the string "true" ignoring case evaluates to false
 							parsedValue = Boolean.parseBoolean(fieldValue);
 							break;
-						default: // leave as string
+						default: // leave as untrimmed string
 							parsedValue = fieldValue;
 							break;
 					}
