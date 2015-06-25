@@ -17,7 +17,6 @@ package com.lithium.luces;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Timer;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -26,7 +25,6 @@ import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.util.Version;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.Stopwatch;
 
 import com.google.gson.JsonObject;
 
