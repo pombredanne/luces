@@ -61,5 +61,3 @@ TODO:
 ------------
 * Handle mappings with hierarchical levels to type determination
 * Add to central Maven repo: http://maven.apache.org/guides/mini/guide-central-repository-upload.html
-* Add more testing
-* make code better
