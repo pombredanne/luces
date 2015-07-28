@@ -51,6 +51,7 @@ public class LucesTest {
 	private String NEG_BYTE = "negByteField";
 	private String REGISTERED = "registered";
 	private String EMAIL_1 = "homestar@runner.com";
+private static String[] NAMES = {"Alice", "Bob", "Charlie", "David", "Elise" };
 
 	@Test
 	public void testConvertOneDocumentWithMapping() {
@@ -70,8 +71,26 @@ public class LucesTest {
 		Luces luces = new Luces(Version.LUCENE_36);
 		luces.mapping(TYPE, createMapping());
 		String json = luces.documentToJSONStringified(doc, true);
-//		System.out.println(json);
 		Assert.assertEquals(valid, json);
+	}
+
+	@Test
+	public void testTimedDocumentConversion() {
+		Luces luces = new Luces(Version.LUCENE_36);
+		luces.mapping(TYPE, createMapping());
+
+		final int iterations = 100000;
+		long startTime = System.nanoTime();
+		for (int i = 0; i < iterations; ++i) {
+			Document doc = createMockFlatUserDocument(true);
+			luces.documentToJSONStringified(doc, false);
+		}
+		long endTime = System.nanoTime();
+		long delta = endTime - startTime;
+		System.out.println("");
+		System.out.println("Perf test took " + delta/1000 + "ms for " + iterations + " iterations\n" +
+				"Averaging " + delta/iterations + "ns/doc");
+		Assert.assertTrue(true);
 	}
 
 	@Test
@@ -282,12 +301,26 @@ public class LucesTest {
 	}
 
 	private Document createMockFlatUserDocument() {
-		final String login = "Trogdor";
-		final String email = EMAIL_1;
-		final Calendar reg_date = new GregorianCalendar(2014, Calendar.DECEMBER, 23, 13, 24, 56);
-		final String name_first = "Joe";
-		final String name_last = "Schmo";
-		final String gender = "male";
+		return createMockFlatUserDocument(false);
+	}
+	private Document createMockFlatUserDocument(boolean randomize) {
+		int randomNum = 0;
+		if (randomize) {
+			randomNum = (int)(Math.random() * 100);
+		}
+		final String login = randomize ? NAMES[randomNum % NAMES.length] : "Trogdor";
+		final String email = randomize ? (NAMES[randomNum % NAMES.length] + "@aol.com") : EMAIL_1;
+		final Calendar reg_date = randomize ? Calendar.getInstance()
+											: new GregorianCalendar(2014, Calendar.DECEMBER, 23, 13, 24, 56);
+		final String name_first = randomize ? NAMES[randomNum % NAMES.length] : "Joe";
+		final String name_last = randomize ? NAMES[randomNum % NAMES.length] : "Schmo";
+		final String gender = randomize ? (randomNum %2 == 0 ? "female" : "male") : "male";
+
+		final String rating = randomize ? String.valueOf(randomNum / 10.0) : "  4.2453 ";
+		final String views = randomize ? String.valueOf(2147483000 + randomNum) : "  655351";
+		final String negbyte = randomize ? String.valueOf(-randomNum) : " -12 ";
+		final String registered = randomize ? String.valueOf(randomNum % 2 == 0) : " true ";
+
 		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
 
 		Document doc = new Document();
@@ -299,10 +332,10 @@ public class LucesTest {
 		doc.add(new Field("signup", sdf.format(reg_date.getTime()), Store.NO, Index.NOT_ANALYZED));
 		doc.add(new Field("gender", gender, Store.NO, Index.ANALYZED));
 		// testing numbers and accounting for whitespace
-		doc.add(new Field(RATING, "  4.2453 ", Store.NO, Index.ANALYZED));
-		doc.add(new Field(VIEWS, "  655351", Store.NO, Index.ANALYZED));
-		doc.add(new Field(NEG_BYTE, " -12 ", Store.NO, Index.ANALYZED));
-		doc.add(new Field(REGISTERED, " true ", Store.NO, Index.ANALYZED));
+		doc.add(new Field(RATING, rating, Store.NO, Index.ANALYZED));
+		doc.add(new Field(VIEWS, views, Store.NO, Index.ANALYZED));
+		doc.add(new Field(NEG_BYTE, negbyte, Store.NO, Index.ANALYZED));
+		doc.add(new Field(REGISTERED, registered, Store.NO, Index.ANALYZED));
 
 		return doc;
 	}

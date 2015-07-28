@@ -162,7 +162,10 @@ public class Luces {
 		List<Fieldable> docFields = doc.getFields();
 		if (null != typeMap && null != typeName) {
 			for (Fieldable field : docFields) {
-				ParseType parseType = typeMap.containsKey(field.name()) ? typeMap.get(field.name()) : ParseType.STRING;
+				ParseType parseType = typeMap.get(field.name());
+				if (null == parseType) {
+					parseType = ParseType.STRING;
+				}
 				String fieldValue = field.stringValue();
 				if (null == fieldValue || (useNull && "".equals(fieldValue.trim()))) {
 					putOrAppend(fields, field.name(), JsonNull.INSTANCE);
