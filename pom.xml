@@ -23,7 +23,7 @@
     <developer>
       <id>bdharrington7</id>
       <name>Brian Harrington</name>
-      <timezone>PST</timezone>
+      <timezone>America/Los_Angeles</timezone>
       <organization>Lithium Technologies, Inc.</organization>
       <organizationUrl>http://www.lithium.com</organizationUrl>
     </developer>
