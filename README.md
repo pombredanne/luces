@@ -5,9 +5,11 @@ A library to convert Lucene documents to JSON for Elasticsearch consumption
 
 License: Apache 2.0
 
+[![Build Status](https://travis-ci.org/lithiumtech/luces.svg?branch=development)](https://travis-ci.org/lithiumtech/luces)
+
 Dependencies:
 ------------
-* Java 7
+* Java 8
 * gson 2.3.1
 * lucene-core 3.6.1
 * junit 3.8.1
@@ -60,4 +62,3 @@ Otherwise, it defaults to false, and will throw a NumberFormatException when a v
 TODO:
 ------------
 * Handle mappings with hierarchical levels to type determination
-* Add to central Maven repo: http://maven.apache.org/guides/mini/guide-central-repository-upload.html
