@@ -108,7 +108,7 @@ public class Luces {
 	 * Flag for setting default values for empty strings. Only used when there is a mapping file to
 	 * determine field types. Otherwise empty strings will throw a parsing error
 	 * Defaults are:
-	 * * 0 for int / long
+	 * <li> 0 for int / long</li>
 	 * * 0.0 for float / double
 	 * * false for boolean
 	 *

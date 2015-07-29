@@ -1,0 +1,6 @@
+# Autodetect text files
+* text=auto
+
+*.java	text
+*.md	text
+*.xml	text
