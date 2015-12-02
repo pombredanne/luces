@@ -38,6 +38,13 @@ public interface LucesConverter {
 	Object getFieldValue(Fieldable field);
 
 	/**
+	 * @param name the field name
+	 * @param value the field value, as a string
+	 * @return he value (converted from value) to the appropriate type for Elasticsearch
+	 */
+	Object getFieldValue(String name, String value);
+
+	/**
 	 * Convert the document to a JSON representation of a Lucene document for indexing into Elasticsearch
 	 *
 	 * @param doc the Lucene document

@@ -62,16 +62,16 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	}
 
 	@Override
-	public Luces mapping(String typeName, JsonObject mapping) {
-		if (null == typeName || null == mapping) {
+	public Luces mapping(String typename, JsonObject mapping) {
+		if (null == typename || null == mapping) {
 			this.typeName = null;
 			this.typeMap = null;
 		} else {
-			this.typeName = typeName;
+			this.typeName = typename;
 			this.typeMap = new HashMap<>();
-			JsonObject workingJson = mapping.getAsJsonObject(typeName);
+			JsonObject workingJson = mapping.getAsJsonObject(typename);
 			if (null == workingJson) {
-				throw new NoSuchElementException(typeName + " type not present or misnamed in mapping");
+				throw new NoSuchElementException(typename + " type not present or misnamed in mapping");
 			}
 			// TODO account for nesting
 			workingJson = workingJson.getAsJsonObject("properties");
@@ -97,18 +97,18 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	}
 
 	@Override
-	public Luces useDefaultsForEmpty(boolean useDefaults) {
-		this.useDefaults = useDefaults;
-		if (useDefaults) {
+	public Luces useDefaultsForEmpty(boolean usedefaults) {
+		this.useDefaults = usedefaults;
+		if (usedefaults) {
 			useNull = false;
 		}
 		return this;
 	}
 
 	@Override
-	public Luces useNullForEmpty(boolean useNull) {
-		this.useNull = useNull;
-		if (useNull) {
+	public Luces useNullForEmpty(boolean usenull) {
+		this.useNull = usenull;
+		if (usenull) {
 			useDefaults = false;
 		}
 		return this;
@@ -122,11 +122,16 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Object getFieldValue(Fieldable field) {
-		ParseType parseType = typeMap.get(field.name());
+		return getFieldValue(field.name(), field.stringValue());
+	}
+
+	@Override
+	public Object getFieldValue(String name, String value) {
+		ParseType parseType = typeMap.get(name);
 		if (null == parseType) {
 			parseType = ParseType.STRING;
 		}
-		String fieldValue = field.stringValue();
+		String fieldValue = value;
 		if (null == fieldValue || (useNull && "".equals(fieldValue.trim()))) {
 			return JsonNull.INSTANCE;
 		}
@@ -161,7 +166,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 					break;
 			}
 		} catch (NumberFormatException ex) {
-			throw new NumberFormatException("Error parsing " + field.name() + " field: " + ex.getMessage());
+			throw new NumberFormatException("Error parsing " + name + " field: " + ex.getMessage());
 		}
 
 		return parsedValue;
@@ -183,12 +188,16 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 		return new Gson().toJsonTree(fields);
 	}
 
+	@SuppressWarnings("unchecked")
+	private static List<Object> toObjectList(Object value) {
+		return (List<Object>) value;
+	}
 
 	private void putOrAppend(Map<String, Object> fieldMap, String fieldName, Object fieldValue) {
 		Object value = fieldMap.get(fieldName);
 		if (value != null) {
 			if (value instanceof ArrayList) {
-				List<Object> values = (List<Object>) value;
+				List<Object> values = toObjectList(value);
 				values.add(fieldValue);
 				fieldMap.put(fieldName, values);
 			} else {
