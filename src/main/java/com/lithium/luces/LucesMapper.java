@@ -50,7 +50,7 @@ public interface LucesMapper<MappingTypeT> {
 	 *
 	 * @return this
 	 */
-	Luces useDefaultsForEmpty(boolean useDefaults);
+	LucesMapper useDefaultsForEmpty(boolean useDefaults);
 
 	/**
 	 * Use a null value when an empty string is encountered. If set to true, useDefaults will be set to false
@@ -58,5 +58,5 @@ public interface LucesMapper<MappingTypeT> {
 	 * @param useNull whether to use a null value when an empty string is encountered for a non-string type
 	 * @return this
 	 */
-	Luces useNullForEmpty(boolean useNull);
+	LucesMapper useNullForEmpty(boolean useNull);
 }
