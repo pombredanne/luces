@@ -39,11 +39,11 @@ import com.google.gson.JsonObject;
 
 
 /**
- * Utility class for converting Lucene Documents to a JSON format for consumption by Elasticsearch
+ * Utility class for converting Lucene Documents to a JSON format for consumption by Elasticsearch. This class is NOT threadsafe.
  *
  * @author Brian Harrington
  */
-public class Luces {
+public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	private enum ParseType {
 		BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE, BOOLEAN, STRING
@@ -61,15 +61,7 @@ public class Luces {
 		}
 	}
 
-	/**
-	 * Specify a mapping JSON object to be able to convert document fields to their proper types
-	 *
-	 * @param typeName Name of the type. Set to null to reset the mapping file and only output strings for the field
-	 *                 values. Throws an error if the typeName doesn't match the root in the mapping, or if the mapping
-	 *                 is invalid.
-	 * @param mapping  mapping JSON object.
-	 * @return this
-	 */
+	@Override
 	public Luces mapping(String typeName, JsonObject mapping) {
 		if (null == typeName || null == mapping) {
 			this.typeName = null;
@@ -104,19 +96,7 @@ public class Luces {
 		return this;
 	}
 
-	/**
-	 * Flag for setting default values for empty strings. Only used when there is a mapping file to
-	 * determine field types. Otherwise empty strings will throw a parsing error
-	 * Defaults are:
-	 * * 0 for int / long
-	 * * 0.0 for float / double
-	 * * false for boolean
-	 *
-	 * @param useDefaults whether to use defaults when an empty string is encountered for a non-string type.
-	 *                    If set to true, useNull will be set to false
-	 *
-	 * @return this
-	 */
+	@Override
 	public Luces useDefaultsForEmpty(boolean useDefaults) {
 		this.useDefaults = useDefaults;
 		if (useDefaults) {
@@ -125,12 +105,7 @@ public class Luces {
 		return this;
 	}
 
-	/**
-	 * Use a null value when an empty string is encountered. If set to true, useDefaults will be set to false
-	 *
-	 * @param useNull whether to use a null value when an empty string is encountered for a non-string type
-	 * @return this
-	 */
+	@Override
 	public Luces useNullForEmpty(boolean useNull) {
 		this.useNull = useNull;
 		if (useNull) {
@@ -139,72 +114,66 @@ public class Luces {
 		return this;
 	}
 
-	/**
-	 * Gets a string representation of the JSON object that the document has been converted to
-	 *
-	 * @param doc            the Lucene document to convert
-	 * @param setPrettyPrint pretty print the JSON string
-	 * @return the String version of the JSON version of a document
-	 */
+	@Override
 	public String documentToJSONStringified(Document doc, boolean setPrettyPrint) {
 		Gson gson = setPrettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
 		return gson.toJson(documentToJSON(doc));
 	}
 
-	/**
-	 * Convert the document to a JSON representation of a Lucene document for indexing into Elasticsearch
-	 *
-	 * @param doc the Lucene document
-	 * @return the JSON representation of the document
-	 */
+	@Override
+	public Object getFieldValue(Fieldable field) {
+		ParseType parseType = typeMap.get(field.name());
+		if (null == parseType) {
+			parseType = ParseType.STRING;
+		}
+		String fieldValue = field.stringValue();
+		if (null == fieldValue || (useNull && "".equals(fieldValue.trim()))) {
+			return JsonNull.INSTANCE;
+		}
+		Object parsedValue;
+		try {
+			switch (parseType) {
+				case BYTE:
+					// FALL THROUGH
+				case SHORT:
+					// FALL THROUGH
+				case INTEGER:
+					// FALL THROUGH
+				case LONG:
+					fieldValue = fieldValue.trim();
+					fieldValue = (useDefaults && "".equals(fieldValue)) ? "0" : fieldValue;
+					parsedValue = Long.parseLong(fieldValue);
+					break;
+				case FLOAT:
+					// FALL THROUGH
+				case DOUBLE:
+					fieldValue = fieldValue.trim();
+					fieldValue = (useDefaults && "".equals(fieldValue)) ? "0.0" : fieldValue;
+					parsedValue = Double.parseDouble(fieldValue);
+					break;
+				case BOOLEAN:
+					fieldValue = fieldValue.trim();
+					// anything that doesn't match the string "true" ignoring case evaluates to false
+					parsedValue = Boolean.parseBoolean(fieldValue);
+					break;
+				default: // leave as untrimmed string
+					parsedValue = fieldValue;
+					break;
+			}
+		} catch (NumberFormatException ex) {
+			throw new NumberFormatException("Error parsing " + field.name() + " field: " + ex.getMessage());
+		}
+
+		return parsedValue;
+	}
+
+	@Override
 	public JsonElement documentToJSON(Document doc) {
 		Map<String, Object> fields = new LinkedHashMap<>();
 		List<Fieldable> docFields = doc.getFields();
 		if (null != typeMap && null != typeName) {
 			for (Fieldable field : docFields) {
-				ParseType parseType = typeMap.get(field.name());
-				if (null == parseType) {
-					parseType = ParseType.STRING;
-				}
-				String fieldValue = field.stringValue();
-				if (null == fieldValue || (useNull && "".equals(fieldValue.trim()))) {
-					putOrAppend(fields, field.name(), JsonNull.INSTANCE);
-					continue;
-				}
-				Object parsedValue;
-				try {
-					switch (parseType) {
-						case BYTE:
-							// FALL THROUGH
-						case SHORT:
-							// FALL THROUGH
-						case INTEGER:
-							// FALL THROUGH
-						case LONG:
-							fieldValue = fieldValue.trim();
-							fieldValue = (useDefaults && "".equals(fieldValue)) ? "0" : fieldValue;
-							parsedValue = Long.parseLong(fieldValue);
-							break;
-						case FLOAT:
-							// FALL THROUGH
-						case DOUBLE:
-							fieldValue = fieldValue.trim();
-							fieldValue = (useDefaults && "".equals(fieldValue)) ? "0.0" : fieldValue;
-							parsedValue = Double.parseDouble(fieldValue);
-							break;
-						case BOOLEAN:
-							fieldValue = fieldValue.trim();
-							// anything that doesn't match the string "true" ignoring case evaluates to false
-							parsedValue = Boolean.parseBoolean(fieldValue);
-							break;
-						default: // leave as untrimmed string
-							parsedValue = fieldValue;
-							break;
-					}
-				} catch (NumberFormatException ex) {
-					throw new NumberFormatException("Error parsing " + field.name() + " field: " + ex.getMessage());
-				}
-				putOrAppend(fields, field.name(), parsedValue);
+				putOrAppend(fields, field.name(), getFieldValue(field));
 			}
 		} else {
 			for (Fieldable field : docFields) {
