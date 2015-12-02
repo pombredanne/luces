@@ -24,7 +24,7 @@ import org.apache.lucene.document.Fieldable;
 import com.google.gson.JsonElement;
 
 /**
- * Provides a conversion from a Lucene {@link Fieldable#stringValue()} value to a typed value (for Elasticsearch).
+ * Provides a conversion from Lucene objects to a typed value (for Elasticsearch).
  *
  * @author Doug Schroeder
  * @since 12/2/15.
@@ -44,4 +44,13 @@ public interface LucesConverter {
 	 * @return the JSON representation of the document
 	 */
 	JsonElement documentToJSON(Document doc);
+
+	/**
+	 * Gets a string representation of the JSON object that the document has been converted to
+	 *
+	 * @param doc            the Lucene document to convert
+	 * @param setPrettyPrint pretty print the JSON string
+	 * @return the String version of the JSON version of a document
+	 */
+	String documentToJSONStringified(Document doc, boolean setPrettyPrint);
 }
