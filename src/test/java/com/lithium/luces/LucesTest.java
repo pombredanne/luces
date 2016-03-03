@@ -35,12 +35,15 @@ import org.junit.Test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * @author Brian Harrington
  */
 public class LucesTest {
+	private static final Logger log = LoggerFactory.getLogger(LucesTest.class);
 
 	private String TYPE = "testType";
 	private String LOGIN = "login";
@@ -87,8 +90,8 @@ public class LucesTest {
 		}
 		long endTime = System.nanoTime();
 		long delta = endTime - startTime;
-		System.out.println("\nPerf test took " + delta / 1000 + "ms for " + iterations + " iterations\n" +
-				"Averaging " + delta / iterations + "ns/doc");
+		log.info("\nPerf test took {}ms for {} iterations\n", delta / 1000, iterations);
+		log.info("Averaging {}ns/doc", delta / iterations);
 		Assert.assertTrue(true);
 	}
 
@@ -109,7 +112,7 @@ public class LucesTest {
 		Document doc = createMockFlatUserDocument();
 		Luces luces = new Luces(Version.LUCENE_36);
 		String json = luces.documentToJSONStringified(doc, true);
-//		System.out.println(json);
+		log.debug(json);
 		Assert.assertEquals(valid, json);
 	}
 
@@ -135,13 +138,13 @@ public class LucesTest {
 		luces.mapping(TYPE, createMapping());
 		luces.mapping(TYPE, null);
 		String json = luces.documentToJSONStringified(doc, true);
-//		System.out.println(json);
+		log.debug(json);
 		Assert.assertEquals(valid, json);
 
 		luces.mapping(TYPE, createMapping());
 		luces.mapping(null, createMapping());
 		json = luces.documentToJSONStringified(doc, true);
-//		System.out.println(json);
+		log.debug(json);
 		Assert.assertEquals(valid, json);
 	}
 
@@ -156,13 +159,11 @@ public class LucesTest {
 		luces.mapping(TYPE, createMapping());
 		luces.mapping(TYPE, null);
 		Object fieldValue = luces.getFieldValue("views", "655351");
-//		System.out.println(json);
 		Assert.assertEquals("655351", fieldValue);
 
 		luces.mapping(TYPE, createMapping());
 		luces.mapping(null, createMapping());
 		fieldValue = luces.getFieldValue("name_first", "Joe");
-//		System.out.println(json);
 		Assert.assertEquals("Joe", fieldValue);
 	}
 
@@ -178,6 +179,7 @@ public class LucesTest {
 			luces.mapping(TYPE, null);
 			Assert.fail("IllegalStateException should have been thrown");
 		} catch (Exception ex) {
+			log.info(ex.getMessage());
 			Assert.assertTrue(ex instanceof IllegalStateException);
 		}
 	}

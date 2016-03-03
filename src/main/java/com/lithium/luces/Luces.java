@@ -30,6 +30,8 @@ import java.util.NoSuchElementException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,6 +46,7 @@ import com.google.gson.JsonObject;
  * @author Brian Harrington
  */
 public class Luces implements LucesConverter, LucesMapper<JsonObject> {
+	private static final Logger log = LoggerFactory.getLogger(Luces.class);
 
 	private enum ParseType {
 		BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE, BOOLEAN, STRING
