@@ -210,6 +210,4 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 			fieldMap.put(fieldName, fieldValue);
 		}
 	}
-
-
 }

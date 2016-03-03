@@ -51,7 +51,7 @@ public class LucesTest {
 	private String NEG_BYTE = "negByteField";
 	private String REGISTERED = "registered";
 	private String EMAIL_1 = "homestar@runner.com";
-private static String[] NAMES = {"Alice", "Bob", "Charlie", "David", "Elise" };
+	private static String[] NAMES = {"Alice", "Bob", "Charlie", "David", "Elise" };
 
 	@Test
 	public void testConvertOneDocumentWithMapping() {
