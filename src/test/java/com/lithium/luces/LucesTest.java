@@ -87,9 +87,8 @@ public class LucesTest {
 		}
 		long endTime = System.nanoTime();
 		long delta = endTime - startTime;
-		System.out.println("");
-		System.out.println("Perf test took " + delta/1000 + "ms for " + iterations + " iterations\n" +
-				"Averaging " + delta/iterations + "ns/doc");
+		System.out.println("\nPerf test took " + delta / 1000 + "ms for " + iterations + " iterations\n" +
+				"Averaging " + delta / iterations + "ns/doc");
 		Assert.assertTrue(true);
 	}
 
@@ -141,6 +140,55 @@ public class LucesTest {
 		json = luces.documentToJSONStringified(doc, true);
 //		System.out.println(json);
 		Assert.assertEquals(valid, json);
+	}
+
+	@Test
+	public void testGetFieldValueWhenMappingIsNullified() {
+		String valid = "{\n" +
+				"  \"login\": \"trogdor\",\n" +
+				"  \"name_first\": \"Joe\",\n" +
+				"  \"name_last\": \"Schmo\",\n" +
+				"  \"email\": \"homestar@runner.com\",\n" +
+				"  \"signup\": \"12/23/2014\",\n" +
+				"  \"gender\": \"male\",\n" +
+				"  \"rating\": \"  4.2453 \",\n" +
+				"  \"views\": \"  655351\",\n" +
+				"  \"negByteField\": \" -12 \",\n" +
+				"  \"registered\": \" true \"\n" +
+				"}";
+		Luces luces = new Luces(Version.LUCENE_36);
+		luces.mapping(TYPE, createMapping());
+		luces.mapping(TYPE, null);
+		Object fieldValue = luces.getFieldValue("views", "655351");
+//		System.out.println(json);
+		Assert.assertEquals("655351", fieldValue);
+
+		luces.mapping(TYPE, createMapping());
+		luces.mapping(null, createMapping());
+		fieldValue = luces.getFieldValue("name_first", "Joe");
+//		System.out.println(json);
+		Assert.assertEquals("Joe", fieldValue);
+	}
+
+	@Test
+	public void testThrowErrorWhenMappingSetToNull(){
+		Luces luces = new Luces(Version.LUCENE_36);
+//		luces.throwErrorIfMappingIsNull(true);
+		luces.mapping(TYPE, createMapping());
+		try {
+			luces.mapping(TYPE, null);
+			Assert.fail("IllegalStateException should have been thrown");
+		} catch (Exception ex) {
+			Assert.assertTrue(ex instanceof IllegalStateException);
+		}
+	}
+
+	@Test (expected = IllegalStateException.class)
+	public void testThrowErrorWhenMappingIsNeverSetAndCallGetFieldValue(){
+		Luces luces = new Luces(Version.LUCENE_36);
+//		luces.throwErrorIfMappingIsNull(true);
+		Object fieldValue = luces.getFieldValue("test", "something");
+		Assert.assertEquals("something", fieldValue);
 	}
 
 	@Test (expected = NoSuchElementException.class)
