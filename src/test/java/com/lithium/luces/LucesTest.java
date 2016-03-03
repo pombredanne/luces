@@ -113,6 +113,9 @@ public class LucesTest {
 		Assert.assertEquals(valid, json);
 	}
 
+	/**
+	 * Tests to see if a null mapping is handled correctly. No errors should be thrown
+	 */
 	@Test
 	public void testMappingIsNullified() {
 		String valid = "{\n" +
@@ -142,20 +145,13 @@ public class LucesTest {
 		Assert.assertEquals(valid, json);
 	}
 
+	/**
+	 * Tests to see if a null mapping is handled correctly when {@link Luces#getFieldValue(String, String)} is called,
+	 * and the mapping is null
+	 * No errors should be thrown
+	 */
 	@Test
 	public void testGetFieldValueWhenMappingIsNullified() {
-		String valid = "{\n" +
-				"  \"login\": \"trogdor\",\n" +
-				"  \"name_first\": \"Joe\",\n" +
-				"  \"name_last\": \"Schmo\",\n" +
-				"  \"email\": \"homestar@runner.com\",\n" +
-				"  \"signup\": \"12/23/2014\",\n" +
-				"  \"gender\": \"male\",\n" +
-				"  \"rating\": \"  4.2453 \",\n" +
-				"  \"views\": \"  655351\",\n" +
-				"  \"negByteField\": \" -12 \",\n" +
-				"  \"registered\": \" true \"\n" +
-				"}";
 		Luces luces = new Luces(Version.LUCENE_36);
 		luces.mapping(TYPE, createMapping());
 		luces.mapping(TYPE, null);
@@ -170,10 +166,13 @@ public class LucesTest {
 		Assert.assertEquals("Joe", fieldValue);
 	}
 
+	/**
+	 * Tests to see if an exception is thrown when {@link Luces#mapping(String, JsonObject)} is called with a null value
+	 */
 	@Test
 	public void testThrowErrorWhenMappingSetToNull(){
 		Luces luces = new Luces(Version.LUCENE_36);
-//		luces.throwErrorIfMappingIsNull(true);
+		luces.throwErrorIfMappingIsNull(true);
 		luces.mapping(TYPE, createMapping());
 		try {
 			luces.mapping(TYPE, null);
@@ -183,10 +182,14 @@ public class LucesTest {
 		}
 	}
 
+	/**
+	 * Tests to see if an exception is thrown when {@link Luces#getFieldValue(String, String)} is called with a null
+	 * mapping
+	 */
 	@Test (expected = IllegalStateException.class)
 	public void testThrowErrorWhenMappingIsNeverSetAndCallGetFieldValue(){
 		Luces luces = new Luces(Version.LUCENE_36);
-//		luces.throwErrorIfMappingIsNull(true);
+		luces.throwErrorIfMappingIsNull(true);
 		Object fieldValue = luces.getFieldValue("test", "something");
 		Assert.assertEquals("something", fieldValue);
 	}

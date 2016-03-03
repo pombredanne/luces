@@ -53,6 +53,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	private Map<String, ParseType> typeMap;
 	private boolean useDefaults;
 	private boolean useNull;
+	private boolean errIfMappingNull;
 
 	@SuppressWarnings("unused")
 	public Luces(Version version) {
@@ -64,6 +65,9 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	@Override
 	public Luces mapping(String typename, JsonObject mapping) {
 		if (null == typename || null == mapping) {
+			if (errIfMappingNull) {
+				throw new IllegalStateException(String.format("%1$s cannot be set to null", typename == null ? "Type" : "Mapping"));
+			}
 			typeName = null;
 			typeMap = null;
 		} else {
@@ -115,6 +119,12 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	}
 
 	@Override
+	public LucesMapper<JsonObject> throwErrorIfMappingIsNull(boolean throwError) {
+		errIfMappingNull = throwError;
+		return this;
+	}
+
+	@Override
 	public String documentToJSONStringified(Document doc, boolean setPrettyPrint) {
 		Gson gson = setPrettyPrint ? new GsonBuilder().setPrettyPrinting().create() : new Gson();
 		return gson.toJson(documentToJSON(doc));
@@ -127,9 +137,16 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Object getFieldValue(String name, String value) {
-		ParseType parseType = typeMap.get(name);
-		if (null == parseType) {
+		if (typeMap == null && errIfMappingNull) {
+			throw new IllegalStateException(String.format("Mapping is null, but required. [name = %1$s, value = %2$s]",
+					name, value));
+		}
+		final ParseType parseType;
+		ParseType temp;
+		if (typeMap == null || (temp = typeMap.get(name)) == null) {
 			parseType = ParseType.STRING;
+		} else {
+			parseType = temp;
 		}
 		String fieldValue = value;
 		if (null == fieldValue || (useNull && fieldValue.trim().isEmpty())) {
