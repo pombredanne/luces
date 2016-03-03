@@ -13,6 +13,7 @@ Dependencies:
 * gson 2.3.1
 * lucene-core 3.6.1
 * junit 3.8.1
+* slf4j 1.7.5
 
 Usage:
 ------------
