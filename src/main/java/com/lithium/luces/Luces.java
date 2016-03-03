@@ -56,7 +56,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@SuppressWarnings("unused")
 	public Luces(Version version) {
-		if (!version.equals(Version.LUCENE_36)) {
+		if (!(version == Version.LUCENE_36)) {
 			throw new UnsupportedOperationException("This library does not support Lucene version " + version.name());
 		}
 	}
@@ -64,11 +64,11 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	@Override
 	public Luces mapping(String typename, JsonObject mapping) {
 		if (null == typename || null == mapping) {
-			this.typeName = null;
-			this.typeMap = null;
+			typeName = null;
+			typeMap = null;
 		} else {
-			this.typeName = typename;
-			this.typeMap = new HashMap<>();
+			typeName = typename;
+			typeMap = new HashMap<>();
 			JsonObject workingJson = mapping.getAsJsonObject(typename);
 			if (null == workingJson) {
 				throw new NoSuchElementException(typename + " type not present or misnamed in mapping");
@@ -88,7 +88,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 				} catch (IllegalArgumentException illegal) {
 					throw new UnsupportedOperationException("The " + typeElt.getAsString() + " type is not supported for conversion");
 				}
-				if (null != parseType && !ParseType.STRING.equals(parseType)) { // don't need to store info on strings
+				if (! (ParseType.STRING == parseType)) { // don't need to store info on strings
 					typeMap.put(entry.getKey(), parseType);
 				}
 			}
@@ -98,7 +98,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Luces useDefaultsForEmpty(boolean usedefaults) {
-		this.useDefaults = usedefaults;
+		useDefaults = usedefaults;
 		if (usedefaults) {
 			useNull = false;
 		}
@@ -107,7 +107,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Luces useNullForEmpty(boolean usenull) {
-		this.useNull = usenull;
+		useNull = usenull;
 		if (usenull) {
 			useDefaults = false;
 		}
@@ -132,7 +132,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 			parseType = ParseType.STRING;
 		}
 		String fieldValue = value;
-		if (null == fieldValue || (useNull && "".equals(fieldValue.trim()))) {
+		if (null == fieldValue || (useNull && fieldValue.trim().isEmpty())) {
 			return JsonNull.INSTANCE;
 		}
 		Object parsedValue;
@@ -146,14 +146,14 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 					// FALL THROUGH
 				case LONG:
 					fieldValue = fieldValue.trim();
-					fieldValue = (useDefaults && "".equals(fieldValue)) ? "0" : fieldValue;
+					fieldValue = (useDefaults && fieldValue.isEmpty()) ? "0" : fieldValue;
 					parsedValue = Long.parseLong(fieldValue);
 					break;
 				case FLOAT:
 					// FALL THROUGH
 				case DOUBLE:
 					fieldValue = fieldValue.trim();
-					fieldValue = (useDefaults && "".equals(fieldValue)) ? "0.0" : fieldValue;
+					fieldValue = (useDefaults && fieldValue.isEmpty()) ? "0.0" : fieldValue;
 					parsedValue = Double.parseDouble(fieldValue);
 					break;
 				case BOOLEAN:
@@ -210,6 +210,4 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 			fieldMap.put(fieldName, fieldValue);
 		}
 	}
-
-
 }
