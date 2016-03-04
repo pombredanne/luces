@@ -6,6 +6,7 @@ A library to convert Lucene documents to JSON for Elasticsearch consumption
 License: Apache 2.0
 
 [![Build Status](https://travis-ci.org/lithiumtech/luces.svg?branch=development)](https://travis-ci.org/lithiumtech/luces)
+[![Coverage Status](https://coveralls.io/repos/github/lithiumtech/luces/badge.svg?branch=development)](https://coveralls.io/github/lithiumtech/luces?branch=development)
 
 Dependencies:
 ------------
