@@ -56,7 +56,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	private Map<String, ParseType> typeMap;
 	private boolean useDefaults;
 	private boolean useNull;
-	private boolean errIfMappingNull;
+	private boolean errIfMappingNull = true;
 
 	@SuppressWarnings("unused")
 	public Luces(Version version) {
@@ -82,7 +82,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 			if (errIfMappingNull) {
 				throw new IllegalStateException(String.format("%1$s cannot be set to null", typename == null ? "Type" : "Mapping"));
 			}
-			log.warn("Setting mapping and type to null, no type conversion will be done");
+			log.warn("Setting mapping and type to null, no primitive type conversion will be done");
 			typeName = null;
 			typeMap = null;
 		} else {
@@ -116,7 +116,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	@Override
 	public Luces useDefaultsForEmpty(boolean usedefaults) {
 		if (log.isDebugEnabled()) {
-			log.debug((!usedefaults ? "Not u" : "U") + "sing defaults for empty");
+			log.debug((usedefaults ? "U" : "Not u") + "sing defaults for empty");
 		}
 		useDefaults = usedefaults;
 		if (usedefaults) {
@@ -128,7 +128,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	@Override
 	public Luces useNullForEmpty(boolean usenull) {
 		if (log.isDebugEnabled()) {
-			log.debug((!usenull ? "Not u" : "U") + "sing null for empty");
+			log.debug((usenull ? "U" : "Not u") + "sing null for empty");
 		}
 		useNull = usenull;
 		if (usenull) {
@@ -138,7 +138,10 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 	}
 
 	@Override
-	public LucesMapper<JsonObject> throwErrorIfMappingIsNull(boolean throwError) {
+	public Luces throwErrorIfMappingIsNull(boolean throwError) {
+		if (log.isDebugEnabled()) {
+			log.debug((throwError ? "T" : "Not t") + "hrowing an error for a null mapping or type");
+		}
 		errIfMappingNull = throwError;
 		return this;
 	}

@@ -137,7 +137,7 @@ public class LucesTest {
 				"  \"registered\": \" true \"\n" +
 				"}";
 		Document doc = createMockFlatUserDocument();
-		Luces luces = new Luces(Version.LUCENE_36);
+		Luces luces = new Luces(Version.LUCENE_36).throwErrorIfMappingIsNull(false);
 		luces.mapping(TYPE, createMapping());
 		luces.mapping(TYPE, null);
 		String json = luces.documentToJSONStringified(doc, true);
@@ -158,7 +158,7 @@ public class LucesTest {
 	 */
 	@Test
 	public void testGetFieldValueWhenMappingIsNullified() {
-		Luces luces = new Luces(Version.LUCENE_36);
+		Luces luces = new Luces(Version.LUCENE_36).throwErrorIfMappingIsNull(false);
 		luces.mapping(TYPE, createMapping());
 		luces.mapping(TYPE, null);
 		Object fieldValue = luces.getFieldValue("views", "655351");

@@ -27,7 +27,7 @@ Where doc is a populated Lucene document. A JsonObject will be returned that can
 For testing purposes, you can also pass a boolean to pretty print the output:
 
 ```java
-String jsonBlob = luceneConverter.documentToJSONStringified(Document doc, true);
+String jsonBlob = lucesConverter.documentToJSONStringified(Document doc, true);
 ```
 
 You can also specify an elasticsearch mapping JSON blob, which will enable any string values that are supposed to be integers, floats, etc. into their correct types
@@ -49,16 +49,32 @@ For example, a mapping like:
 can be added to the converter this way, as a JsonObject:
 
 ```java
-luceneConverter.mapping("user", mappingJsonObject)
+lucesConverter.mapping("user", mappingJsonObject)
 ```
 where "user" is the type in Elasticsearch.
 
 When using a mapping file, empty values will not be parsed correctly, so you can specify if you want empty values replaced with the defaults for the type:
 ```java
-luceneConverter.useDefaultsForEmpty(true);
+lucesConverter.useDefaultsForEmpty(true);
 ```
 
 Otherwise, it defaults to false, and will throw a NumberFormatException when a value is empty. Keep in mind that invalid values (like 123abc in an integer field) will still throw parsing errors regardless of the flag
+
+##Options:
+```java
+lucesConverter.useDefaultsForEmpty(bool);
+```
+If `true`, uses the default value for a primitive if the string is empty (0, 0.0, false). Setting to `true` will set useNullForEmpty to `false`
+
+```java
+lucesConverter.useNullForEmpty(bool);
+```
+If `true`, uses `null` for an empty string value. Setting to `true` will set useDefaultsForEmpty to `false`.
+
+```java
+lucesConverter.throwErrorIfMappingIsNull(bool);
+```
+Throws an error if the mapping is set to `null`, or if trying to convert a document without specifying a type and mapping. Defaults to `true`
 
 TODO:
 ------------

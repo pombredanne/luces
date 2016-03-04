@@ -60,5 +60,11 @@ public interface LucesMapper<MappingTypeT> {
 	 */
 	LucesMapper<MappingTypeT> useNullForEmpty(boolean useNull);
 
+	/**
+	 * Throw an error if the mapping or type is set to null, or if a document conversion is attempted without having a
+	 * type and mapping specified
+	 * @param throwError Throw an error if true
+	 * @return this
+	 */
 	LucesMapper<MappingTypeT> throwErrorIfMappingIsNull(boolean throwError);
 }
