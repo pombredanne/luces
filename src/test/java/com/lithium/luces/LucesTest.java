@@ -45,15 +45,18 @@ import org.slf4j.LoggerFactory;
 public class LucesTest {
 	private static final Logger log = LoggerFactory.getLogger(LucesTest.class);
 
-	private String TYPE = "testType";
-	private String LOGIN = "login";
-	private String FIRST_NAME = "name_first";
-	private String EMAIL_FIELD = "email";
-	private String RATING = "rating";
-	private String VIEWS = "views";
-	private String NEG_BYTE = "negByteField";
-	private String REGISTERED = "registered";
-	private String EMAIL_1 = "homestar@runner.com";
+	private static final String TYPE = "testType";
+	private static final String LOGIN = "login";
+	private static final String FIRST_NAME = "name_first";
+	private static final String LAST_NAME = "name_last";
+	private static final String EMAIL_FIELD = "email";
+	private static final String RATING = "rating";
+	private static final String VIEWS = "views";
+	private static final String NEG_BYTE = "negByteField";
+	private static final String REGISTERED = "registered";
+	private static final String EMAIL_1 = "homestar@runner.com";
+	private static final String SIGNUP = "signup";
+	private static final String GENDER = "gender";
 	private static String[] NAMES = {"Alice", "Bob", "Charlie", "David", "Elise" };
 
 	@Test
@@ -380,10 +383,10 @@ public class LucesTest {
 
 		doc.add(new Field(LOGIN, login.toLowerCase(), Store.YES, Index.NOT_ANALYZED));
 		doc.add(new Field(FIRST_NAME, name_first, Store.NO, Index.ANALYZED));
-		doc.add(new Field("name_last", name_last, Store.NO, Index.ANALYZED));
+		doc.add(new Field(LAST_NAME, name_last, Store.NO, Index.ANALYZED));
 		doc.add(new Field(EMAIL_FIELD, email.toLowerCase(), Store.NO, Index.ANALYZED));
-		doc.add(new Field("signup", sdf.format(reg_date.getTime()), Store.NO, Index.NOT_ANALYZED));
-		doc.add(new Field("gender", gender, Store.NO, Index.ANALYZED));
+		doc.add(new Field(SIGNUP, sdf.format(reg_date.getTime()), Store.NO, Index.NOT_ANALYZED));
+		doc.add(new Field(GENDER, gender, Store.NO, Index.ANALYZED));
 		// testing numbers and accounting for whitespace
 		doc.add(new Field(RATING, rating, Store.NO, Index.ANALYZED));
 		doc.add(new Field(VIEWS, views, Store.NO, Index.ANALYZED));
@@ -399,7 +402,7 @@ public class LucesTest {
 		Luces luces = new Luces(Version.LUCENE_36);
 		luces.mapping(TYPE, createMapping());
 		JsonElement json = luces.documentToJSON(doc);
-		Assert.assertEquals(2, json.getAsJsonObject().getAsJsonArray("gender").size());
+		Assert.assertEquals(2, json.getAsJsonObject().getAsJsonArray(GENDER).size());
 	}
 
 	private Document createMockFlatUserDocumentWithMultipleValueForGenderField() {
@@ -417,11 +420,11 @@ public class LucesTest {
 
 		doc.add(new Field(LOGIN, login.toLowerCase(), Store.YES, Index.NOT_ANALYZED));
 		doc.add(new Field(FIRST_NAME, name_first, Store.NO, Index.ANALYZED));
-		doc.add(new Field("name_last", name_last, Store.NO, Index.ANALYZED));
+		doc.add(new Field(LAST_NAME, name_last, Store.NO, Index.ANALYZED));
 		doc.add(new Field(EMAIL_FIELD, email.toLowerCase(), Store.NO, Index.ANALYZED));
-		doc.add(new Field("signup", sdf.format(reg_date.getTime()), Store.NO, Index.NOT_ANALYZED));
-		doc.add(new Field("gender", gender1, Store.NO, Index.ANALYZED));
-		doc.add(new Field("gender", gender2, Store.NO, Index.ANALYZED));
+		doc.add(new Field(SIGNUP, sdf.format(reg_date.getTime()), Store.NO, Index.NOT_ANALYZED));
+		doc.add(new Field(GENDER, gender1, Store.NO, Index.ANALYZED));
+		doc.add(new Field(GENDER, gender2, Store.NO, Index.ANALYZED));
 
 		// testing numbers and accounting for whitespace
 		doc.add(new Field(RATING, "  4.2453 ", Store.NO, Index.ANALYZED));
@@ -432,10 +435,7 @@ public class LucesTest {
 		return doc;
 	}
 
-
-
-
-	private JsonObject createMapping() {
+	private static JsonObject createMapping() {
 		JsonObject mapping = new JsonObject();
 		JsonObject typeObject = new JsonObject();
 		JsonObject propertiesObject = new JsonObject();
@@ -444,9 +444,25 @@ public class LucesTest {
 		loginDef.addProperty("type", "string");
 		propertiesObject.add(LOGIN, loginDef);
 
-		JsonObject nameDef = new JsonObject();
-		nameDef.addProperty("type", "string");
-		propertiesObject.add(FIRST_NAME, nameDef);
+		JsonObject firstNameDef = new JsonObject();
+		firstNameDef.addProperty("type", "string");
+		propertiesObject.add(FIRST_NAME, firstNameDef);
+
+		JsonObject lastNameDef = new JsonObject();
+		lastNameDef.addProperty("type", "string");
+		propertiesObject.add(LAST_NAME, lastNameDef);
+
+		JsonObject signupDef = new JsonObject();
+		signupDef.addProperty("type", "string");
+		propertiesObject.add(SIGNUP, signupDef);
+
+		JsonObject gender = new JsonObject();
+		gender.addProperty("type", "string");
+		propertiesObject.add(GENDER, gender);
+
+		JsonObject emailDef = new JsonObject();
+		emailDef.addProperty("type", "string");
+		propertiesObject.add(EMAIL_FIELD, emailDef);
 
 		JsonObject ratingDef = new JsonObject();
 		ratingDef.addProperty("type", "float");

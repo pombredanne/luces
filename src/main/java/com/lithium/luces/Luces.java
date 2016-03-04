@@ -67,10 +67,22 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Luces mapping(String typename, JsonObject mapping) {
+		String debugMessage = "";
+		if (log.isDebugEnabled()) {
+			debugMessage = "Adding mapping for type " + typename;
+		}
+		if (log.isTraceEnabled()) {
+			debugMessage += " with mapping: " + new GsonBuilder().setPrettyPrinting().create().toJson(mapping);
+		}
+		if (!debugMessage.isEmpty()) {
+			log.debug(debugMessage);
+		}
+
 		if (null == typename || null == mapping) {
 			if (errIfMappingNull) {
 				throw new IllegalStateException(String.format("%1$s cannot be set to null", typename == null ? "Type" : "Mapping"));
 			}
+			log.warn("Setting mapping and type to null, no type conversion will be done");
 			typeName = null;
 			typeMap = null;
 		} else {
@@ -95,9 +107,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 				} catch (IllegalArgumentException illegal) {
 					throw new UnsupportedOperationException("The " + typeElt.getAsString() + " type is not supported for conversion");
 				}
-				if (! (ParseType.STRING == parseType)) { // don't need to store info on strings
-					typeMap.put(entry.getKey(), parseType);
-				}
+				typeMap.put(entry.getKey(), parseType);
 			}
 		}
 		return this;
@@ -105,6 +115,9 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Luces useDefaultsForEmpty(boolean usedefaults) {
+		if (log.isDebugEnabled()) {
+			log.debug((!usedefaults ? "Not u" : "U") + "sing defaults for empty");
+		}
 		useDefaults = usedefaults;
 		if (usedefaults) {
 			useNull = false;
@@ -114,6 +127,9 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Luces useNullForEmpty(boolean usenull) {
+		if (log.isDebugEnabled()) {
+			log.debug((!usenull ? "Not u" : "U") + "sing null for empty");
+		}
 		useNull = usenull;
 		if (usenull) {
 			useDefaults = false;
@@ -147,6 +163,7 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 		final ParseType parseType;
 		ParseType temp;
 		if (typeMap == null || (temp = typeMap.get(name)) == null) {
+			log.warn("Field {} has no type association, parsing \"{}\" as a string", name, value);
 			parseType = ParseType.STRING;
 		} else {
 			parseType = temp;
