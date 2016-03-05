@@ -2,6 +2,6 @@ language: java
 jdk: oraclejdk8
 script:
   - mvn clean install
-  - mvn test jacoco:report
+  - mvn test cobertura:cobertura
 after_success:
   - mvn coveralls:report
