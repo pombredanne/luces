@@ -35,7 +35,7 @@ public interface LucesMapper<MappingTypeT> {
 	 * @param mapping  mapping JSON object.
 	 * @return this
 	 */
-	LucesMapper mapping(String typeName, MappingTypeT mapping);
+	LucesMapper<MappingTypeT> mapping(String typeName, MappingTypeT mapping);
 
 	/**
 	 * Flag for setting default values for empty strings. Only used when there is a mapping file to
@@ -50,7 +50,7 @@ public interface LucesMapper<MappingTypeT> {
 	 *
 	 * @return this
 	 */
-	LucesMapper useDefaultsForEmpty(boolean useDefaults);
+	LucesMapper<MappingTypeT> useDefaultsForEmpty(boolean useDefaults);
 
 	/**
 	 * Use a null value when an empty string is encountered. If set to true, useDefaults will be set to false
@@ -58,5 +58,13 @@ public interface LucesMapper<MappingTypeT> {
 	 * @param useNull whether to use a null value when an empty string is encountered for a non-string type
 	 * @return this
 	 */
-	LucesMapper useNullForEmpty(boolean useNull);
+	LucesMapper<MappingTypeT> useNullForEmpty(boolean useNull);
+
+	/**
+	 * Throw an error if the mapping or type is set to null, or if a document conversion is attempted without having a
+	 * type and mapping specified
+	 * @param throwError Throw an error if true
+	 * @return this
+	 */
+	LucesMapper<MappingTypeT> throwErrorIfMappingIsNull(boolean throwError);
 }
