@@ -67,15 +67,11 @@ public class Luces implements LucesConverter, LucesMapper<JsonObject> {
 
 	@Override
 	public Luces mapping(String typename, JsonObject mapping) {
-		String debugMessage = "";
 		if (log.isDebugEnabled()) {
-			debugMessage = "Adding mapping for type " + typename;
+			log.debug("Adding mapping for type " + typename);
 		}
 		if (log.isTraceEnabled()) {
-			debugMessage += " with mapping: " + new GsonBuilder().setPrettyPrinting().create().toJson(mapping);
-		}
-		if (!debugMessage.isEmpty()) {
-			log.debug(debugMessage);
+			log.trace("Sending mapping: " + new GsonBuilder().setPrettyPrinting().create().toJson(mapping));
 		}
 
 		if (null == typename || null == mapping) {
